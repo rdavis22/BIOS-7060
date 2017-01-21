@@ -63,8 +63,7 @@ p_res<-qplot(x=g1$fitted.values, y=g1$residuals, geom="point",
 # 95% confidence interval for parameters 
 confint(g1)
 
-# Plot the confidence intervals for the regression and the future predicted 
-#   values
+#GGPlot: Plot the confidence intervals for the regression and the future predicted values
 tt = order(savings$pop15)
 conf_lim = predict(g1, interval="confidence")
 pred_lim = predict(g1, interval="prediction")
