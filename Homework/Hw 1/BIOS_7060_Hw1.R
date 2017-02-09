@@ -46,3 +46,30 @@ lvne_mn.prb1<-leveneTest(tmpD$hba1c, tmpD$fbg_round, center = mean)
 lvne_md.prb1<-leveneTest(tmpD$hba1c, tmpD$fbg_round, center = median)
 #Bartlest's test
 brtlt.prb1<-bartlett.test(tmpD$hba1c, tmpD$fbg_round)
+
+##1A-3)
+#ANOVA Table for the diabetes data
+hw1a.anva<-anova(hw1a.model)
+
+###Part B###
+##1B: model with all the data points included
+hw1b.model<-lm(hba1c~fbg, data=hw1.data)
+
+###Part c###
+#multiple regression model with "fbg" and "tg"
+hw1c.model<-lm(hba1c~fbg+tg, data=hw1.data)
+#ANOVA table
+hw1c.anva<-anova(hw1c.model)
+
+####Problem 2 (labeled 3)####
+#***See output from "hw1c.model"
+
+####Problem 3 (labeled 4)####
+#(X'X)-^1 for problem 3
+m.prb3<-matrix(c(0.0091, -0.00085, -0.0014, -0.00085, 0.00015, -0.00011,
+               -0.0014, -0.00011, 0.0012), nrow=3, ncol=3, byrow=T)
+#MSE from ANOVA table from problem 1c)
+sig_2<-hw1c.anva[[3]][3]
+
+#Var(b)
+vr_b<-m.prb3*sig_2
