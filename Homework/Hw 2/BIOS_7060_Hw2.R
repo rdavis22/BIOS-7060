@@ -4,8 +4,10 @@ if(!require(tidyverse)){
   install.packages("tidyverse"); library(tidyverse)}
 if(!require(car)){
   install.packages("car"); library(car)}
-  if(!require(nlme)){
-    install.packages("nlme"); library(nlme)}
+if(!require(nlme)){
+  install.packages("nlme"); library(nlme)}
+if(!require(MASS)){
+  install.packages("MASS"); library(MASS)}
 
 ####Problem 1####
 ###Data input###
@@ -50,4 +52,36 @@ mtheft.ggplot<-ggplot(data=crime.tibble, aes(x=mtheft, y=findict))+
 
 ###Part b)###
 ##Partial Residual Plots
-partres.plots<-cr
+partres.plots<-crPlots(crime.lm)
+
+###Part c)###
+##Plot of Resisduals for the model and year##
+#dataframe with "Year" predictor and residuals for the model
+res.tibble<-tibble(crime.res=crime.lm$residuals, year=crime.data$year)
+#residual vs. year plot
+res.ggplot<-ggplot(data=res.tibble, aes(x=year, y=crime.res))+
+  geom_point()+
+  labs(title="Model with 4 Predictors Residuals vs. Year")
+
+###Part d)###
+##Outlier analysis##
+#externally studentized residuals
+extres.prb1<-studres(crime.lm)
+
+#internally studentized residuals
+intres.prb1<-stdres(crime.lm)
+
+#outlier test for the residuals (check the 5 largest residuals)
+outliers.prb1<-outlierTest(crime.lm, cutoff = 5)
+
+##Influence Analysis##
+# Cook's D 
+CookD.prb1 = cooks.distance(crime.lm)
+plot(CookD.prb1)
+#influencePlot(crime.lm)
+
+# DFBETAS
+dfbet.prb1<-dfbeta(crime.lm)
+
+# DFFITS
+dffts.prb1<-dffits(crime.lm)
