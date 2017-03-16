@@ -4,6 +4,7 @@ if(!require(tidyverse)){
   install.packages("tidyverse"); library(tidyverse)}
 if(!require(car)){
   install.packages("car"); library(car)}
+#for least squares
 if(!require(nlme)){
   install.packages("nlme"); library(nlme)}
 if(!require(MASS)){
@@ -24,7 +25,8 @@ crime.tibble<-as_tibble(crime.data)
 ###Linear Regression###
 #regression model Y=female indictment rate, X=fertility rate, labor force...
 #...participation rate, post secondary degree rate, male theft conviction rate
-crime.lm<-lm(findict~fertil+labor+postsec+mtheft, data=crime.tibble)
+model.prb1<-findict~fertil+labor+postsec+mtheft
+crime.lm<-lm(model.prb1, data=crime.tibble)
 
 ###Part a)###
 ##Bivariate Plots##
@@ -106,3 +108,28 @@ DW.prb1<-durbinWatsonTest(crime.lm)
 #Runs Test
 xx.prb1<-factor(sign(crime.lm$res))
 rnstest.prb1<-runs.test(xx.prb1)
+
+###Part f)###
+##Generalized Least Squares
+crime.gls<-gls(model.prb1, correlation=corAR1(form=~year), data=crime.tibble)
+#95% CI for parameters estimates, correlation coeff for the errors, and resid std. error
+CI95.prb1<-intervals(crime.gls)
+
+
+####Problem 2####
+###Data Input###
+#initial dataframe
+prb2.data<-read.table("HW2_data2.txt", header=T)
+#transform to tibble and only include diabetic patients
+prb2.tibble<-as_tibble(prb2.data)
+#subset with just diabetes patients (hba1c>6.5)
+diabetes.tibble<-prb2.tibble[which(prb2.tibble$hba1c>6.5),]
+
+#model with fasting blood glucose and total glyceride as predictors for HgA1C
+model.prb2<-hba1c~fbg+tg
+
+#Weighted Least-Squares for the diabetes data
+prb2.gls<-gls(model=model.prb2, data=diabetes.tibble, weights=varPower())
+
+#ordinary Least-Squares estimation
+prb2.lm<-lm(model.prb2, data=diabetes.tibble)
