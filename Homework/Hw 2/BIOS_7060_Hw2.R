@@ -104,5 +104,5 @@ summary(influence.measures(crime.lm))
 DW.prb1<-durbinWatsonTest(crime.lm)
 
 #Runs Test
-xx = factor(sign(crime.lm$res))
-runs.test(xx)
+xx.prb1<-factor(sign(crime.lm$res))
+rnstest.prb1<-runs.test(xx.prb1)
