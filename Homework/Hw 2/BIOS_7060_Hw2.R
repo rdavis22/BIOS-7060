@@ -8,6 +8,9 @@ if(!require(nlme)){
   install.packages("nlme"); library(nlme)}
 if(!require(MASS)){
   install.packages("MASS"); library(MASS)}
+#time-series package for runs test
+if(!require(tseries)){
+  install.packages("tseries"); library(tseries)}
 
 ####Problem 1####
 ###Data input###
@@ -75,13 +78,31 @@ intres.prb1<-stdres(crime.lm)
 outliers.prb1<-outlierTest(crime.lm, cutoff = 5)
 
 ##Influence Analysis##
+#number of data points
+n.prb1<-length(crime.tibble$findict)
 # Cook's D 
 CookD.prb1 = cooks.distance(crime.lm)
-plot(CookD.prb1)
-#influencePlot(crime.lm)
+#cutoff for Cook's D value
+cutoff.prb1 <- 4/((nrow(crime.tibble)-length(crime.lm$coefficients)-2))
+#plot of the Cook's D measures
+cookplt.prb1<-plot(crime.lm, which=4, cook.levels = cutoff)
+#influence Plot
+inflplot.prb1<-influencePlot(crime.lm)
 
 # DFBETAS
 dfbet.prb1<-dfbeta(crime.lm)
 
 # DFFITS
 dffts.prb1<-dffits(crime.lm)
+
+#all influence measures summary
+summary(influence.measures(crime.lm))
+
+###Part e)###
+##Tests for Autocorrelation##
+#Durbin-Watson Test
+DW.prb1<-durbinWatsonTest(crime.lm)
+
+#Runs Test
+xx = factor(sign(crime.lm$res))
+runs.test(xx)
