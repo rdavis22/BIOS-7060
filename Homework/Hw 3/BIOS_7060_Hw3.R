@@ -8,6 +8,10 @@ if(!require(MASS)){
   install.packages("MASS"); library(MASS)}
 if(!require(faraway)){
   install.packages("faraway"); library(faraway)}
+if(!require(ridge)){
+  install.packages("ridge"); library(ridge)}
+if(!require(lmridge)){
+  install.packages("lmridge"); library(lmridge)}
 ###Set the proper file path###
 #path<-"C:/Users/Rick/Documents/Tulane/MPH/BIOS\ 7060/Homework/Hw\ 3/"
 #***Make sure to set the path as the one with 'Hw3_1.txt' in it.
@@ -161,12 +165,72 @@ attach(prb3_4.tibble)
 ###scaling and centering Data###
 #intial regression model
 g0<-lm(CHOL ~ ., data = prb3_4.tibble)
-#new dataframe with ID, PILL, and PAIR
+#new dataframe with ID, PILL, and PAIR removed
 prb3_4_0.tibble<-tibble(AGE, HT, WT, CHOL, ALB, CALC, URIC, wtalb, acucont)
+#remove the missing values
+prb3_4_0.tibble<-na.omit(prb3_4_0.tibble)
 #scaled new dataframe
 prb3_4_0sc.tibble<-as_tibble(data.frame(scale(prb3_4_0.tibble)), na.rm=T)
 #remove missing values
 prb3_4_0sc.tibble<-na.omit(prb3_4_0sc.tibble)
 
-##check the correlation##
-prb3_4.cor<-round(cor(prb3_4_0sc.tibble, use = "complete.obs"), 3)
+##check the correlations (gives correlation matrix)##
+#get correlation matrix (exclude "CHOL" response variable which is in 4th position)
+cormat.prb3_4<-round(cor(prb3_4_0sc.tibble[,-4], use = "complete.obs"), 3)
+#determinant of the correlation matrix is checked: close to 0=correlation; close to 1=no corr.
+dtrm.prb3_4<-det(cormat.prb3_4)
+
+###Assessing for Multicollinearity###
+##Method 1: VIF (from faraway package)##
+#get the regression equation
+g.vif <- lm(CHOL ~ ., prb3_4_0.tibble)
+#convert the dataframe (excluding the "CHOL" response variable) as a matrix
+x <- as.matrix(prb3_4_0.tibble[, -4])
+prb3_4.vif<-vif(x)
+
+##Method 2: Eigenvalues##
+#compute the eigenvalues and eigenvectors
+e0<-eigen(t(x) %*% x)
+#extract the eigenvalues and round to three decimal places
+e<-round(e0$values, 3)
+
+##Method 3: Condition Indices##
+#get the condition indexes
+CondInd.prb3_4<-sqrt(e[1]/e)
+#Singular Value Decomposition
+xsvd = svd(x)
+v = xsvd$v
+# The i-th column in the returned matrix represents the decomposition
+#   of Var(b_i)
+apply(v, 1, 
+      function(x) {
+        t = x^2/e
+        return(round(t/sum(t), 3))
+      })
+
+####Problem 3.5####
+###Data Input###
+prb3_5.data<-read.table(file="Hw3_2.txt", header=T)
+#convert dataframe to more useable tibble forr from dplyr
+prb3_5.tibble<-as_tibble(prb3_5.data)
+#remove dataframe
+rm(prb3_5.data)
+
+###regular regression###
+#model for the regression
+g.prb3_5<-lm(CHOL~AGE+WT+ALB+CALC+URIC+wtalb+acucont, data = prb3_5.tibble)
+
+###ridge regression###
+##Based on the 'MASS' package
+gr.prb3_5<-lm.ridge(CHOL~AGE+WT+ALB+CALC+URIC+wtalb+acucont,
+                     data = prb3_5.tibble, lambda = .13)
+ matplot(gr.prb3_5$lambda, t(gr.prb3_5$coef), type="l", xlab=expression(lambda),
+         ylab = expression(hat(beta)))
+ abline(h=0,lwd=2)
+
+##Based on the 'ridge' package
+gr1.prb3_5<-linearRidge(CHOL~AGE+WT+ALB+CALC+URIC+wtalb+acucont,
+                        data = prb3_5.tibble, lambda = "automatic")
+##Based on the 'lmridge' package
+#summary(lmridge(CHOL~AGE+WT+ALB+CALC+URIC+wtalb+acucont,
+#data = prb3_5.tibble, K=0.13))
